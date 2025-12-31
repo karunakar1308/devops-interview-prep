@@ -39,7 +39,7 @@ DevOps Engineer supporting Humana's internal DevOps and cloud platform capabilit
 
 ### Core Question Categories
 
-1. **"Tell Me About Yourself"** - [Link to prepared script](#tell-me-about-yourself)
+1. **"Tell Me About Yourself"** - [[STAR-STORIES.md](./STAR-STORIES.md#tell-me-about-yourself-humana-focused)](#tell-me-about-yourself)
 2. **CI/CD & GitOps** - Azure DevOps, GitHub, ArgoCD stories
 3. **Kubernetes & Platform Ownership** - AKS/GKE, production incidents
 4. **Cloud Platforms** - Azure/GCP hybrid environments
@@ -55,7 +55,7 @@ DevOps Engineer supporting Humana's internal DevOps and cloud platform capabilit
 ```
 .
 ├── README.md                          # This file
-├── tell-me-about-yourself.md         # Introduction script
+├── STAR-STORIES.md         # Introduction script
 ├── star-stories/
 │   ├── ci-cd-gitops.md               # CI/CD and GitOps stories
 │   ├── kubernetes-platform.md         # Kubernetes and platform stories
@@ -95,8 +95,8 @@ DevOps Engineer supporting Humana's internal DevOps and cloud platform capabilit
 
 ## Quick Links
 
-- [Full STAR Stories](./star-stories/)
-- [Tell Me About Yourself Script](./tell-me-about-yourself.md)
+- [Full STAR Stories](./STAR-STORIES.md)
+- - [Tell Me About Yourself Script](./STAR-STORIES.md)
 - [Interview Cheat Sheet](./cheat-sheet.md)
 - [Katie Brake's Email Requirements](./role-requirements.md)
 
