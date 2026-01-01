@@ -106,6 +106,66 @@ jobs:
 
 #### Q2.a. Follow-up – Handling secrets in GitOps
 
+**Example ArgoCD Application configuration:**
+
+```yaml
+# argocd-app.yaml - Application resource for a microservice
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: my-service-prod
+  namespace: argocd
+spec:
+  project: production
+  
+  # Source: Git repository as source of truth
+  source:
+    repoURL: https://github.com/myorg/k8s-manifests
+    targetRevision: main
+    path: apps/my-service/overlays/prod
+    helm:
+      valueFiles:
+        - values-prod.yaml
+  
+  # Destination: Target Kubernetes cluster
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: production
+  
+  # Sync policy: Auto-sync for lower envs, manual for prod
+  syncPolicy:
+    automated:
+      prune: false  # Don't auto-delete resources
+      selfHeal: false  # Require manual approval for prod
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+```
+
+**Example: Sealed Secret for GitOps:**
+
+```yaml
+# sealed-secret.yaml - Encrypted secret safe to store in Git
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: app-secrets
+  namespace: production
+spec:
+  encryptedData:
+    database-password: AgBx7f9... # Encrypted value
+    api-key: AgCy8g0... # Encrypted value
+  template:
+    metadata:
+      name: app-secrets
+    type: Opaque
+```
+
 **Question:**  
 "How did you handle secrets in your GitOps setup?"
 
