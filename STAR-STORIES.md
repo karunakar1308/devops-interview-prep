@@ -15,7 +15,8 @@ Comprehensive behavioral interview answers using the STAR (Situation, Task, Acti
 
 ### Q1: "Describe a time you designed or modernized a CI/CD pipeline."
 
-**S (Situation):** At Fiserv, several teams were onboarding microservices, but each had its own ad-hoc Jenkins or manual deployment process, which caused slow releases and frequent misconfigurations.
+
+**S (Situation):** At Fiserv, multiple development teams were building and deploying new microservices, but each had its own ad-hoc Jenkins or manual deployment process, which caused slow releases and frequent misconfigurations.
 
 **T (Task):** My task was to standardize CI/CD by creating reusable templates and modern workflows across services.
 
