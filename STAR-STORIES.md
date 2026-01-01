@@ -8,8 +8,7 @@ Comprehensive behavioral interview answers using the STAR (Situation, Task, Acti
 
 **Answer:**
 
-"I'm a platform-focused DevOps/SRE engineer with around nine years of experience building and operating CI/CD and Kubernetes platforms for large enterprises, most recently at Apple and Fiserv. Over the last few years my work has centered on standardizing Git-based workflows, implementing GitOps with ArgoCD, and automating Kubernetes and cloud infrastructure with Terraform and PowerShell/Python to improve reliability and developer velocity. Given Humana's focus on Azure/GCP-based platforms, CI/CD modernization, GitHub to Azure DevOps migrations, and operating in a regulated healthcare environment, I'm excited about a role where I can own CI/CD pipelines, Kubernetes platforms, and observability while partnering with application and infrastructure teams to make delivery more reliable, secure, and compliant."
-
+"I'm a DevOps Platform engineer with around nine years of experience specializing in platform administration, CI/CD systems, and Kubernetes operations for large enterprises, most recently at Apple and Fiserv. My core expertise is in administering DevOps platforms—specifically Azure DevOps with Linux and Windows agents, GitHub with self-hosted runners, JFrog Artifactory, SonarQube, and implementing GitOps with ArgoCD for Kubernetes deployments. I've managed agent pools at scale, automated platform onboarding with PowerShell, integrated security and quality gates across pipelines, and worked extensively in regulated environments. Given Humana's focus on DevOps platform administration and tooling, I'm excited about a role where I can own the CI/CD platform infrastructusecurity, and enable development teams through well-administered, automated systems.s."
 ---
 
 ## CI/CD & GitOps Stories
@@ -167,3 +166,66 @@ Comprehensive behavioral interview answers using the STAR (Situation, Task, Acti
 - **Quantify Results** wherever possible (time saved, error reduction, etc.)
 - **Adapt to the question** - same story can answer multiple related questions
 - **Always mention** the specific technologies Humana uses (Azure DevOps, ArgoCD, PowerShell, AKS/GKE, JFrog)
+
+
+## DevOps Platform Administration
+
+### Q12: "Tell me about your experience with Azure DevOps agent administration."
+
+**S:** At Fiserv and Morgan Stanley, we had hundreds of build agents across Linux and Windows that needed to be managed, patched, and scaled to support our CI/CD workloads.
+
+**T:** I was responsible for administering Azure DevOps agent pools, ensuring high availability, and managing both self-hosted and Microsoft-hosted agents for different security zones.
+
+**A:** I configured self-hosted agent pools for regulated workloads that couldn't use Microsoft-hosted agents, set up agent capability tags to route specific builds (Docker, Node, .NET) to the right agents, implemented agent monitoring with health checks, and automated agent provisioning using Terraform and PowerShell scripts. I also managed agent pool permissions and created separate pools for dev, test, and prod environments to maintain isolation.
+
+**R:** Build queue times improved by 35%, agent utilization became more efficient, and we reduced manual agent troubleshooting by having clear monitoring and automated recovery scripts.
+
+### Q13: "How have you managed GitHub runners and GitHub administration?"
+
+**S:** At Apple and Equifax, teams were using GitHub Actions heavily, and we needed reliable, secure runners for building and deploying applications.
+
+**T:** My task was to set up and administer both GitHub-hosted and self-hosted runners while maintaining GitHub organization and repository administration standards.
+
+**A:** I deployed self-hosted GitHub runners on EC2 and Azure VMs using infrastructure-as-code, configured runner groups with different access levels, implemented runner auto-scaling based on workflow demand, and managed GitHub organization settings including branch protection rules, required status checks, and security policies. I also set up secret management and integrated runners with our artifact repositories and Kubernetes clusters.
+
+**R:** We achieved better control over build environments, reduced costs by 40% compared to only using GitHub-hosted runners, and improved security compliance through controlled runner access.
+
+### Q14: "Describe your experience with SonarQube integration and code quality gates."
+
+**S:** At J.P. Morgan Chase and Fiserv, code quality was critical, but teams had inconsistent quality standards and no automated enforcement.
+
+**T:** I needed to integrate SonarQube into our CI/CD pipelines and establish quality gates that would prevent poor-quality code from reaching production.
+
+**A:** I deployed SonarQube in our environment, integrated it with Azure DevOps and GitHub Actions pipelines to run analysis on every pull request and build, configured quality gates with thresholds for code coverage (70%+), bug/vulnerability counts, and code smells. I created custom quality profiles for different languages (Java, Python, JavaScript) and set up dashboards for teams to track their technical debt trends.
+
+**R:** Code quality improved measurably—bug detection in early stages increased by 50%, and production defects related to code quality decreased. Teams became more aware of technical debt and actively worked to improve their scores.
+
+### Q15: "Tell me about your experience with JFrog Artifactory administration."
+
+**S:** At MoneyGram and Fiserv, we needed a robust artifact management solution to handle Docker images, Maven artifacts, NPM packages, and Helm charts across multiple environments.
+
+**T:** I was responsible for administering JFrog Artifactory, setting up repositories, managing permissions, and integrating it with our CI/CD pipelines.
+
+**A:** I configured local, remote, and virtual repositories in Artifactory for different artifact types, set up replication between data centers for disaster recovery, implemented retention policies to manage storage costs, and integrated Artifactory with Azure DevOps and GitHub Actions for seamless artifact publish and promotion. I also configured Xray for security scanning of artifacts and set up webhooks to trigger deployments when artifacts were promoted to production repositories.
+
+**R:** Artifact management became centralized and reliable, deployment times reduced by 30% due to faster artifact retrieval, and we achieved better security compliance through automated vulnerability scanning of all artifacts.
+
+### Q16: "How have you implemented GitOps with ArgoCD for Kubernetes deployments?"
+
+**S:** At Equifax and Apple, manual kubectl deployments and configuration drift were causing reliability issues in our Kubernetes environments.
+
+**T:** I needed to implement a GitOps approach using ArgoCD to make deployments declarative, auditable, and automated.
+
+**A:** I set up ArgoCD in our Kubernetes clusters, created Application and ApplicationSet resources to manage multiple microservices and environments, configured Git repositories as the single source of truth for all manifests and Helm charts, implemented automated sync policies for non-production environments while requiring manual approval for production, and integrated ArgoCD with our RBAC and SSO systems. I also set up Slack notifications for deployment events and created dashboards showing sync status across all applications.
+
+**R:** Configuration drift was eliminated, deployment rollbacks became as simple as reverting a Git commit, and mean time to deploy decreased by 50% while deployment reliability improved. Audit compliance improved significantly because every change was tracked in Git history.
+
+### Q17: "Describe a complex platform administration challenge you solved."
+
+**S:** At Apple, we were experiencing issues with our CI/CD platform where builds would intermittently fail due to agent capacity issues, but we couldn't easily predict when we needed more agents, and manual scaling was too slow.
+
+**T:** I needed to implement intelligent agent pool scaling and better resource management across our Azure DevOps and GitHub environments.
+
+**A:** I built a monitoring and auto-scaling solution using PowerShell and Azure automation that tracked agent pool queue depths, average wait times, and agent utilization metrics. Based on these metrics, the system automatically provisioned or decommissioned agents using VM scale sets. I also implemented a tagging system to route specific job types to optimized agents (GPU jobs, Docker builds, large memory tasks) and created detailed dashboards showing platform health and cost metrics.
+
+**R:** Agent wait times decreased by 60%, cost optimization through dynamic scaling saved approximately 45% on compute costs, and platform reliability improved with fewer build failures due to resource constraints.
