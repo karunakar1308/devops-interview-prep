@@ -168,6 +168,109 @@ spec:
 
 **Question:**  
 "How did you handle secrets in your GitOps setup?"
+```
+
+**Example: External Secrets with HashiCorp Vault:**
+
+```yaml
+# external-secret.yaml - Using External Secrets Operator with Vault
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: app-secrets
+  namespace: production
+spec:
+  # Refresh interval
+  refreshInterval: 1h
+  
+  # Reference to SecretStore (Vault configuration)
+  secretStoreRef:
+    name: vault-backend
+    kind: SecretStore
+  
+  # Target Kubernetes secret to create
+  target:
+    name: app-secrets
+    creationPolicy: Owner
+  
+  # Data to fetch from Vault
+  data:
+    - secretKey: database-password
+      remoteRef:
+        key: secret/data/production/database
+        property: password
+    
+    - secretKey: api-key
+      remoteRef:
+        key: secret/data/production/api
+        property: key
+```
+
+**SecretStore for HashiCorp Vault:**
+
+```yaml
+# vault-secretstore.yaml
+apiVersion: external-secrets.io/v1beta1
+kind: SecretStore
+metadata:
+  name: vault-backend
+  namespace: production
+spec:
+  provider:
+    vault:
+      server: "https://vault.company.com"
+      path: "secret"
+      version: "v2"
+      auth:
+        # Kubernetes auth method
+        kubernetes:
+          mountPath: "kubernetes"
+          role: "production-role"
+          serviceAccountRef:
+            name: external-secrets-sa
+```
+
+**Example: External Secrets with Azure Key Vault:**
+
+```yaml
+# azure-keyvault-secretstore.yaml
+apiVersion: external-secrets.io/v1beta1
+kind: SecretStore
+metadata:
+  name: azure-keyvault
+  namespace: production
+spec:
+  provider:
+    azurekv:
+      vaultUrl: "https://myvault.vault.azure.net"
+      authType: WorkloadIdentity  # Using Azure Workload Identity
+      serviceAccountRef:
+        name: external-secrets-sa
+```
+
+**Example: ExternalSecret referencing Azure Key Vault:**
+
+```yaml
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: app-secrets-azure
+  namespace: production
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: azure-keyvault
+    kind: SecretStore
+  target:
+    name: app-secrets
+  data:
+    - secretKey: database-password
+      remoteRef:
+        key: prod-database-password  # Key Vault secret name
+    - secretKey: api-key
+      remoteRef:
+        key: prod-api-key
+```
 
 **Answer (STAR – brief):**  
 - **Action:** Avoided committing raw secrets by using sealed-secrets or external secret managers (such as Azure Key Vault/HashiCorp Vault) referenced from manifests.  
