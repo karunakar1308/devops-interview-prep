@@ -95,11 +95,14 @@ jobs:
 
 ### Q2: "Tell me about your experience with GitOps / ArgoCD."
 
-**S:** At Equifax, Kubernetes deployments were managed with custom Bash/Python scripts and direct kubectl commands—teams would run scripts that templated manifests, updated image tags, and applied changes, but these scripts lived on local machines or Jenkins, had no version control, and made it hard to track what was actually deployed versus what should be deployed. This led to configuration drift between environments and hard-to-trace changes.
+**S:** At Equifax, Kubernetes deployments were managed with custom Bash/Python scripts and direct kubectl commands—teams would run scripts that templated manifests, updated image tags, and applied changes. While the scripts themselves were in GitHub, there was no declarative source of truth for what should be running in each environment, which made it hard to track actual cluster state versus desired state. This led to configuration drift between environments and hard-to-trace changes.
+
+**T:** I was asked to introduce a more reliable, auditable deployment model.
 
 **A:** I implemented GitOps with ArgoCD by defining all Kubernetes manifests and Helm values declaratively in Git, setting up ArgoCD applications per environment, and enforcing pull-request approvals for any change. I also created Helm chart standards and trained teams on how to use Git as the single source of truth.
 
 **R:** We eliminated most manual cluster changes, reduced deployment drift, and made rollbacks as simple as reverting a Git commit, which noticeably improved release confidence.
+
 
 #### Q2.a. Follow-up – Handling secrets in GitOps
 
