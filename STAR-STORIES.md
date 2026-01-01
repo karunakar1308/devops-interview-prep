@@ -68,7 +68,9 @@ jobs:
       - name: Trigger Azure DevOps pipeline
         if: needs.onprem-deployment
         run: # Call Azure DevOps API
-```misconfigured pipelines decreased significantly because everyone used the same vetted templates.
+```
+
+**R (Result):** New-service setup time dropped from 1-2 days to a few hours, and deployment failures related to misconfigured pipelines decreased significantly because everyone used the same vetted templates.
 
 #### Q1.a. Follow-up – Security and compliance in standardized pipelines
 
