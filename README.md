@@ -1,5 +1,12 @@
 # Humana DevOps Engineer Interview Preparation
 
+> **🎯 Interview Focus Update**: Based on panel member feedback, this role is **purely around DevOps Platform Administration**. Key focus areas for the first round include:
+> - **Azure DevOps**: Linux server agents, Windows agents, agent pools administration
+> - **GitHub**: Runners and GitHub administration
+> - **SonarQube**: Code quality and integration
+> - **JFrog Artifactory**: Artifact management
+> - **GitOps with ArgoCD**: Kubernetes deployments
+
 STAR method interview preparation for the Humana DevOps Engineer role. This repository contains comprehensive behavioral and technical interview stories aligned to the specific requirements outlined by Katie Brake.
 
 ## Interview Details
@@ -12,11 +19,14 @@ STAR method interview preparation for the Humana DevOps Engineer role. This repo
 ## Role Overview
 
 ### Position Summary
-DevOps Engineer supporting Humana's internal DevOps and cloud platform capabilities within a regulated healthcare environment. Focus on designing, improving, and operating CI/CD systems, Kubernetes-based platforms, and cloud tooling across Azure and GCP.
-
+**DevOps Platform Administrator** supporting Humana's internal DevOps platform capabilities within a regulated healthcare environment. Primary focus on administering Azure DevOps agents (Linux/Windows), GitHub runners, JFrog Artifactory, SonarQube, and implementing GitOps with ArgoCD for Kubernetes deployments across Azure and GCP.
 ### Key Responsibilities
 - Design, implement, and maintain CI/CD pipelines (Azure DevOps, ArgoCD, GitOps)
 - Support cloud platform infrastructure across Azure and GCP in hybrid/regulated environments
+- Administer Azure DevOps agent pools (self-hosted Linux and Windows agents)
+- Manage GitHub runners and GitHub organization administration
+- Configure and maintain JFrog Artifactory for artifact management
+- Integrate SonarQube for code quality gates in CI/CD pipelines
 - Deploy, operate, and support containerized workloads on Kubernetes (AKS/GKE)
 - Drive platform-wide initiatives including GitHub → Azure DevOps migrations
 - Implement artifact management and build promotion workflows (JFrog Artifactory)
