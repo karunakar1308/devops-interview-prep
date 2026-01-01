@@ -8,7 +8,7 @@ Comprehensive behavioral interview answers using the STAR (Situation, Task, Acti
 
 **Answer:**
 
-"I'm a DevOps Platform engineer with around nine years of experience specializing in platform administration, CI/CD systems, and Kubernetes operations for large enterprises, most recently at Apple and Fiserv. My core expertise is in administering DevOps platforms—specifically Azure DevOps with Linux and Windows agents, GitHub with self-hosted runners, JFrog Artifactory, SonarQube, and implementing GitOps with ArgoCD for Kubernetes deployments. I've managed agent pools at scale, automated platform onboarding with PowerShell, integrated security and quality gates across pipelines, and worked extensively in regulated environments. Given Humana's focus on DevOps platform administration and tooling, I'm excited about a role where I can own the CI/CD platform infrastructure security, and enable development teams through well-administered, automated systems."
+"I'm a DevOps Platform engineer with nine years of experience specialized in platform administration, CI/CD and Kubernetes operations for large enterprises, most recently at Apple and Fiserv. My core expertise is in administering DevOps platforms—specifically Azure DevOps with Linux and Windows agents, GitHub with self-hosted runners, JFrog Artifactory, SonarQube, and implementing GitOps with ArgoCD for Kubernetes deployments. I've managed agent pools at scale, automated platform onboarding with PowerShell, integrated security and quality gates across pipelines, and worked extensively in regulated environments."
 ---
 
 ## CI/CD & GitOps Stories
