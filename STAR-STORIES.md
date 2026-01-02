@@ -655,6 +655,567 @@ func prometheusMiddleware(next http.Handler) http.Handler {
 
 **A:** I created platform-approved Helm chart templates that baked in best practices for labels, resource requests/limits, health probes, network policies, and logging/metrics sidecars. I integrated these with our GitHub Actions + ArgoCD pipelines so teams could deploy using a consistent pattern with minimal customization.
 
+**Platform-Approved Helm Chart Template Structure:**
+
+```
+platform-helm-chart/
+├── Chart.yaml
+├── values.yaml
+├── templates/
+│   ├── deployment.yaml
+│   ├── service.yaml
+│   ├── ingress.yaml
+│   ├── hpa.yaml
+│   ├── networkpolicy.yaml
+│   ├── serviceaccount.yaml
+│   ├── configmap.yaml
+│   └── _helpers.tpl
+└── README.md
+```
+
+**Chart.yaml:**
+```yaml
+apiVersion: v2
+name: platform-app-template
+description: Platform-approved Helm chart template with built-in best practices
+type: application
+version: 1.0.0
+appVersion: "1.0"
+maintainers:
+  - name: Platform Team
+    email: platform@company.com
+```
+
+**values.yaml (with sensible defaults):**
+```yaml
+# Application configuration
+replicaCount: 3
+
+image:
+  repository: "" # Must be provided
+  pullPolicy: IfNotPresent
+  tag: "" # Must be provided
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# Service Account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Pod annotations (for metrics scraping)
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8080"
+  prometheus.io/path: "/metrics"
+
+# Pod Security Context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+
+# Service
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+  annotations: {}
+
+# Ingress
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: "" # Must be provided
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: "" # Auto-generated from host
+      hosts:
+        - "" # Must match host above
+
+# Resource requests/limits (enforced minimums)
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+# Health probes (sensible defaults)
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 8080
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 5
+
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+startupProbe:
+  httpGet:
+    path: /healthz
+    port: 8080
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30
+
+# Autoscaling
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Node selection
+nodeSelector: {}
+tolerations: []
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - "{{ include \"platform-app.name\" . }}"
+        topologyKey: kubernetes.io/hostname
+
+# Network Policy (enabled by default)
+networkPolicy:
+  enabled: true
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            name: ingress-nginx
+      ports:
+      - protocol: TCP
+        port: 8080
+  egress:
+    - to:
+      - namespaceSelector: {}
+      ports:
+      - protocol: TCP
+        port: 443  # HTTPS
+      - protocol: TCP
+        port: 53   # DNS
+      - protocol: UDP
+        port: 53   # DNS
+
+# Logging sidecar (Fluent Bit)
+logging:
+  enabled: true
+  image: fluent/fluent-bit:2.0
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+# Metrics sidecar (Optional - for legacy apps without /metrics)
+metrics:
+  enabled: false
+  exporter:
+    image: prom/statsd-exporter:v0.24.0
+    port: 9102
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi
+
+# Environment variables
+env: []
+  # - name: LOG_LEVEL
+  #   value: "info"
+
+# ConfigMap data
+configMap:
+  enabled: false
+  data: {}
+
+# Secrets (use external-secrets operator)
+externalSecrets:
+  enabled: false
+  secretStore: "vault-backend"
+  data: []
+    # - secretKey: database-password
+    #   remoteRef:
+    #     key: secret/data/app/database
+    #     property: password
+```
+
+**templates/deployment.yaml (with sidecars and best practices):**
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "platform-app.fullname" . }}
+  labels:
+    {{- include "platform-app.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "platform-app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "platform-app.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "platform-app.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      
+      # Init container for dependency checks
+      initContainers:
+      - name: init-check
+        image: busybox:1.35
+        command: ['sh', '-c', 'until nslookup kubernetes.default.svc.cluster.local; do echo waiting for k8s; sleep 2; done']
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 10 }}
+      
+      containers:
+      # Main application container
+      - name: {{ .Chart.Name }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 10 }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        {{- with .Values.livenessProbe }}
+        livenessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.readinessProbe }}
+        readinessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.startupProbe }}
+        startupProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        {{- with .Values.env }}
+        env:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: cache
+          mountPath: /app/cache
+        {{- if .Values.configMap.enabled }}
+        - name: config
+          mountPath: /app/config
+        {{- end }}
+      
+      {{- if .Values.logging.enabled }}
+      # Fluent Bit logging sidecar
+      - name: fluent-bit
+        image: {{ .Values.logging.image }}
+        resources:
+          {{- toYaml .Values.logging.resources | nindent 10 }}
+        volumeMounts:
+        - name: fluentbit-config
+          mountPath: /fluent-bit/etc/
+        - name: varlog
+          mountPath: /var/log
+          readOnly: true
+      {{- end }}
+      
+      {{- if .Values.metrics.enabled }}
+      # Metrics exporter sidecar
+      - name: metrics-exporter
+        image: {{ .Values.metrics.exporter.image }}
+        ports:
+        - name: metrics
+          containerPort: {{ .Values.metrics.exporter.port }}
+          protocol: TCP
+        resources:
+          {{- toYaml .Values.metrics.exporter.resources | nindent 10 }}
+      {{- end }}
+      
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}
+      {{- if .Values.configMap.enabled }}
+      - name: config
+        configMap:
+          name: {{ include "platform-app.fullname" . }}
+      {{- end }}
+      {{- if .Values.logging.enabled }}
+      - name: fluentbit-config
+        configMap:
+          name: {{ include "platform-app.fullname" . }}-fluentbit
+      - name: varlog
+        hostPath:
+          path: /var/log
+      {{- end }}
+      
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+```
+
+**templates/networkpolicy.yaml:**
+```yaml
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "platform-app.fullname" . }}
+  labels:
+    {{- include "platform-app.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "platform-app.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    {{- toYaml .Values.networkPolicy.policyTypes | nindent 4 }}
+  {{- with .Values.networkPolicy.ingress }}
+  ingress:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.networkPolicy.egress }}
+  egress:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
+```
+
+**templates/_helpers.tpl (standard labels):**
+```yaml
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "platform-app.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Create a default fully qualified app name.
+*/}}
+{{- define "platform-app.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Common labels (following Kubernetes recommended labels)
+*/}}
+{{- define "platform-app.labels" -}}
+helm.sh/chart: {{ include "platform-app.chart" . }}
+{{ include "platform-app.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/part-of: {{ .Release.Namespace }}
+{{- end }}
+
+{{/*
+Selector labels
+*/}}
+{{- define "platform-app.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "platform-app.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "platform-app.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "platform-app.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
+```
+
+**Usage Example (team's values override):**
+```yaml
+# my-app-values.yaml
+image:
+  repository: mycompany.azurecr.io/my-app
+  tag: "v1.2.3"
+
+ingress:
+  hosts:
+    - host: my-app.company.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 1000m
+    memory: 1Gi
+
+autoscaling:
+  minReplicas: 5
+  maxReplicas: 20
+
+env:
+  - name: LOG_LEVEL
+    value: "info"
+  - name: DATABASE_URL
+    valueFrom:
+      secretKeyRef:
+        name: my-app-secrets
+        key: database-url
+
+externalSecrets:
+  enabled: true
+  data:
+    - secretKey: database-url
+      remoteRef:
+        key: secret/data/my-app/database
+        property: url
+```
+
+**GitHub Actions Integration:**
+```yaml
+# .github/workflows/deploy.yaml
+name: Deploy to Kubernetes
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: '3.12.0'
+      
+      - name: Add platform Helm repo
+        run: |
+          helm repo add platform https://charts.company.com/platform
+          helm repo update
+      
+      - name: Lint Helm values
+        run: |
+          helm lint platform/platform-app-template -f my-app-values.yaml
+      
+      - name: Template and validate
+        run: |
+          helm template my-app platform/platform-app-template \
+            -f my-app-values.yaml \
+            --namespace production \
+            --validate
+      
+      - name: Update ArgoCD Application
+        run: |
+          cat <<EOF | kubectl apply -f -
+          apiVersion: argoproj.io/v1alpha1
+          kind: Application
+          metadata:
+            name: my-app
+            namespace: argocd
+          spec:
+            project: default
+            source:
+              repoURL: https://charts.company.com/platform
+              targetRevision: 1.0.0
+              chart: platform-app-template
+              helm:
+                valueFiles:
+                  - values.yaml
+                values: |
+$(cat my-app-values.yaml | sed 's/^/                  /')
+            destination:
+              server: https://kubernetes.default.svc
+              namespace: production
+            syncPolicy:
+              automated:
+                prune: true
+                selfHeal: true
+          EOF
+```
+
 **R:** Developer onboarding became faster, deployments were more predictable, and operational issues due to inconsistent configuration dropped across services.
 
 #### Q4.a. Follow-up – Enforcing standard Helm charts
