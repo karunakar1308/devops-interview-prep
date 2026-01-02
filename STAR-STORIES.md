@@ -653,8 +653,7 @@ func prometheusMiddleware(next http.Handler) http.Handler {
 
 **T:** My goal was to standardize Kubernetes deployments to make them easier to operate and secure.
 
-**A:** I created platform-approved Helm chart templates that baked in best practices for labels, resource requests/limits, health probes, network policies, and logging/metrics sidecars. I integrated these with our GitHub Actions + ArgoCD pipelines so teams could deploy using a consistent pattern with minimal customization.
-
+**A:** I created platform-approved Helm chart templates that baked in best practices for labels, resource requests/limits, health probes, network policies, and logging/metrics sidecars. I integrated these with our GitHub Actions + ArgoCD pipelines so teams could deploy using a consistent pattern with minimal customization. ([See detailed best practices breakdown](#helm-chart-best-practices))
 **Platform-Approved Helm Chart Template Structure:**
 
 ```
@@ -1215,6 +1214,75 @@ $(cat my-app-values.yaml | sed 's/^/                  /')
                 selfHeal: true
           EOF
 ```
+
+#### Helm Chart Best Practices
+
+**What Best Practices Were Baked Into The Platform Charts:**
+
+**1. Security Best Practices:**
+- Non-root user execution (`runAsNonRoot: true`, `runAsUser: 1000`)
+- Read-only root filesystem (`readOnlyRootFilesystem: true`)
+- Dropped capabilities (`drop: [ALL]`) to minimize attack surface  
+- Security profiles (`seccompProfile: RuntimeDefault`)
+- No privilege escalation (`allowPrivilegeEscalation: false`)
+- Pod Security Context enforced with fsGroup and user controls
+
+**2. Resource Management:**
+- Enforced minimum resource requests (500m CPU, 512Mi memory)
+- Defined resource limits (1Gi CPU, 1Gi memory)
+- Prevents resource starvation with guaranteed minimums
+- Cost control through limits preventing runaway consumption
+
+**3. Health & Availability:**
+- Comprehensive health probes:
+  - Liveness probe with 30s initial delay (prevents premature restarts)
+  - Readiness probe with separate endpoint (`/ready` vs `/healthz`)
+  - Startup probe for slow-starting apps (30 failures = 5 min startup)
+- Proper timeouts and thresholds (5s timeout, 5 failure threshold)
+- Separate health endpoints for different purposes
+
+**4. Scalability & Performance:**
+- Horizontal Pod Autoscaling (HPA) enabled by default
+- Sensible thresholds (70% CPU, 80% memory)
+- Minimum 3 replicas for high availability
+- Pod anti-affinity spreads pods across nodes
+- Init containers for dependency checks
+
+**5. Observability & Monitoring:**
+- Prometheus integration with pod annotations (`prometheus.io/scrape: "true"`)
+- Fluent Bit logging sidecar pre-configured
+- Optional metrics exporter sidecar for legacy apps
+- Standard Kubernetes labels (app.kubernetes.io/*)
+
+**6. Network Security:**
+- Network policies enabled by default
+- Restricted ingress (only from ingress-nginx namespace)
+- Limited egress (HTTPS 443 and DNS 53 only)
+- Zero-trust networking with explicit allow rules
+
+**7. Configuration Management:**
+- External secrets integration (Vault/Azure Key Vault)
+- ConfigMap support for config separation
+- Environment variable templating
+- Checksum-based rollouts (config changes trigger pod restarts)
+
+**8. Deployment Patterns:**
+- Immutable infrastructure (read-only filesystems with emptyDir volumes)
+- GitOps-ready design for ArgoCD
+- Automatic service account creation with RBAC
+- SSL/TLS by default with cert-manager integration
+
+**9. Compliance & Auditability:**
+- Consistent labeling for tracking and compliance
+- Namespace isolation per environment
+- RBAC integration with least privilege
+- Admission control compatible (Gatekeeper policies)
+
+**10. Operational Excellence:**
+- EmptyDir volumes for ephemeral data
+- Standard ingress configuration (Nginx with SSL redirect)
+- Helper functions for consistent naming
+- Version tracking in labels
 
 **R:** Developer onboarding became faster, deployments were more predictable, and operational issues due to inconsistent configuration dropped across services.
 
