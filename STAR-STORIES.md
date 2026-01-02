@@ -309,7 +309,331 @@ spec:
 **Answer (STAR – brief):**  
 - **Action:** Updated runbooks to include a clear checklist: check HPA metrics, pod restarts, CPU throttling, and key dashboards before deeper dives.  
 - **Action:** Added concrete SLO/SLA thresholds and pre‑defined mitigation steps like temporary replica scaling or rolling back recent config changes.  
-- **Result:** Future incidents were handled faster and more consistently by on‑call engineers, even if they were less familiar with that specific service.
+- **Result:** Future incidents were handled faster and more consistently by on‑call engineers, even if they were 
+
+**Detailed Technical Breakdown:**
+
+**1. Correlating Pod Restarts and CPU Throttling with Peak Load**
+
+*Prometheus Queries:*
+```promql
+# Pod restart rate
+rate(kube_pod_container_status_restarts_total{namespace="production"}[5m])
+
+# CPU throttling detection
+rate(container_cpu_cfs_throttled_seconds_total[5m]) > 0
+
+# Correlate with request rate
+rate(http_requests_total[5m])
+
+# CPU usage vs limits
+(rate(container_cpu_usage_seconds_total[5m]) / on (pod) 
+ group_left kube_pod_container_resource_limits{resource="cpu"}) * 100
+```
+
+*Investigation Commands:*
+```bash
+# Check pod restart history
+kubectl get pods -n production -o wide
+kubectl describe pod <pod-name> -n production
+
+# View pod events
+kubectl get events -n production --sort-by='.lastTimestamp'
+
+# Check CPU throttling in pod
+kubectl top pods -n production
+kubectl exec <pod-name> -- cat /sys/fs/cgroup/cpu/cpu.stat
+# Look for nr_throttled and throttled_time
+```
+
+**2. Checking HPA and Resource Requests/Limits**
+
+*HPA Inspection:*
+```bash
+# Get HPA status
+kubectl get hpa -n production
+kubectl describe hpa <hpa-name> -n production
+
+# Check current metrics vs target
+kubectl get hpa <hpa-name> -n production -o yaml
+```
+
+*Problematic HPA Configuration:*
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: myapp-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: myapp
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70  # Too high - pods throttled before scaling
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60  # Too slow for sudden spikes
+```
+
+*Resource Check:*
+```bash
+# View current resource settings
+kubectl get deployment <deployment-name> -n production -o yaml | grep -A 10 resources
+
+# Check actual usage
+kubectl top pods -n production
+```
+
+*Problematic Resources:*
+```yaml
+resources:
+  requests:
+    cpu: "100m"      # Too low - causes CPU throttling
+    memory: "128Mi"
+  limits:
+    cpu: "200m"      # Too restrictive
+    memory: "256Mi"  # Pods OOMKilled under load
+```
+
+**3. Adjusting Pod Resources**
+
+*Updated Configuration:*
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+      - name: myapp
+        resources:
+          requests:
+            cpu: "500m"      # Increased from 100m
+            memory: "512Mi"  # Increased from 128Mi
+          limits:
+            cpu: "1000m"     # Increased from 200m - less throttling
+            memory: "1Gi"    # Increased from 256Mi - prevent OOM
+```
+
+*Apply and Verify:*
+```bash
+kubectl apply -f deployment.yaml
+kubectl rollout status deployment/myapp -n production
+kubectl get pods -n production -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.containers[*].resources}{"\n"}{end}'
+```
+
+**4. Tuning Autoscaling Thresholds**
+
+*Improved HPA:*
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: myapp-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: myapp
+  minReplicas: 3          # Increased baseline
+  maxReplicas: 20         # Increased ceiling
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50  # Lowered from 70 - scale earlier
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Pods
+    pods:
+      metric:
+        name: http_requests_per_second
+      target:
+        type: AverageValue
+        averageValue: "1000"
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0  # Scale up immediately
+      policies:
+      - type: Percent
+        value: 100       # Double pods quickly
+        periodSeconds: 15
+      - type: Pods
+        value: 4         # Or add 4 pods at a time
+        periodSeconds: 15
+      selectPolicy: Max  # Use most aggressive policy
+    scaleDown:
+      stabilizationWindowSeconds: 300  # Wait 5min before scaling down
+      policies:
+      - type: Percent
+        value: 10        # Scale down slowly
+        periodSeconds: 60
+```
+
+**5. Temporarily Increasing Replica Counts**
+
+*Emergency Scale:*
+```bash
+# Quick scale up during incident
+kubectl scale deployment myapp --replicas=10 -n production
+
+# Or patch the deployment
+kubectl patch deployment myapp -n production -p '{"spec":{"replicas":10}}'
+
+# Verify
+kubectl get deployment myapp -n production
+```
+
+**6. Improving Readiness/Liveness Probes**
+
+*Before (Problematic):*
+```yaml
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8080
+  initialDelaySeconds: 10   # Too short
+  periodSeconds: 10
+  timeoutSeconds: 1         # Too aggressive
+  failureThreshold: 3       # Killed too quickly
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 8080
+  periodSeconds: 10
+```
+
+*After (Improved):*
+```yaml
+livenessProbe:
+  httpGet:
+    path: /healthz       # Lightweight endpoint
+    port: 8080
+  initialDelaySeconds: 30  # Increased - app warmup time
+  periodSeconds: 10
+  timeoutSeconds: 5        # More lenient
+  failureThreshold: 5      # More tolerance before restart
+
+readinessProbe:
+  httpGet:
+    path: /ready         # Separate from liveness
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 5       # Check more frequently
+  timeoutSeconds: 3
+  successThreshold: 1
+  failureThreshold: 3
+
+startupProbe:            # Added for slow-starting apps
+  httpGet:
+    path: /healthz
+    port: 8080
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30   # 5 minutes total startup time
+```
+
+**7. Adding Granular Dashboards for Latency and Error-Rate per Route**
+
+*Prometheus Queries:*
+```promql
+# P95 latency per route
+histogram_quantile(0.95, 
+  rate(http_request_duration_seconds_bucket{namespace="production"}[5m])
+) by (route)
+
+# P99 latency per route
+histogram_quantile(0.99, 
+  rate(http_request_duration_seconds_bucket{namespace="production"}[5m])
+) by (route)
+
+# Error rate per route
+rate(http_requests_total{status=~"5..", namespace="production"}[5m]) 
+/ 
+rate(http_requests_total{namespace="production"}[5m]) 
+by (route) * 100
+
+# Request rate per route
+rate(http_requests_total{namespace="production"}[5m]) by (route)
+
+# Success rate per route
+rate(http_requests_total{status=~"2..", namespace="production"}[5m]) by (route)
+```
+
+*Application Instrumentation (Go example):*
+```go
+import (
+    "github.com/prometheus/client_golang/prometheus"
+    "github.com/prometheus/client_golang/prometheus/promhttp"
+)
+
+var (
+    httpDuration = prometheus.NewHistogramVec(
+        prometheus.HistogramOpts{
+            Name:    "http_request_duration_seconds",
+            Help:    "Duration of HTTP requests.",
+            Buckets: prometheus.DefBuckets,
+        },
+        []string{"route", "method", "status"},
+    )
+    httpRequests = prometheus.NewCounterVec(
+        prometheus.CounterOpts{
+            Name: "http_requests_total",
+            Help: "Total HTTP requests.",
+        },
+        []string{"route", "method", "status"},
+    )
+)
+
+func init() {
+    prometheus.MustRegister(httpDuration)
+    prometheus.MustRegister(httpRequests)
+}
+
+func prometheusMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        start := time.Now()
+        
+        // Wrap ResponseWriter to capture status code
+        wrapped := &responseWriter{ResponseWriter: w, statusCode: 200}
+        
+        next.ServeHTTP(wrapped, r)
+        
+        duration := time.Since(start).Seconds()
+        status := fmt.Sprintf("%d", wrapped.statusCode)
+        
+        httpDuration.WithLabelValues(r.URL.Path, r.Method, status).Observe(duration)
+        httpRequests.WithLabelValues(r.URL.Path, r.Method, status).Inc()
+    })
+}
+```
+
+*Grafana Dashboard Panels:*
+- P95/P99 latency per route (line graph)
+- Error rate per route (graph with alert threshold)
+- Request throughput per route (stacked area)
+- Success rate heatmap
+- Top 10 slowest routes (table)
+- Error distribution by route (pie chart)less familiar with that specific service.
 
 #### Q3.b. Follow-up – Partnering with dev teams
 
