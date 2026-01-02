@@ -618,9 +618,56 @@ spec:
 "How do you monitor the health and performance of agent pools?"
 
 **Answer (STAR – brief):**  
-- **Action:** Collected metrics on queue length, job duration, success/failure rates, and agent status, feeding them into dashboards and alerts.  
-- **Action:** Set thresholds for queue time and failure spikes, triggering notifications and auto‑scaling scripts when exceeded.  
-- **Result:** Capacity issues were caught early, and build performance stayed consistent as demand fluctuated.
+- **Action:** Collected metrics on queue length, job duration, success/failure rates, and agent status using Azure DevOps REST API, feeding them into dashboards and alerts. Implemented health check scripts that monitored agent availability, disk space, and resource utilization.
+
+```powershell
+# Health Check Script (PowerShell)
+$orgUrl = "https://dev.azure.com/yourorg"
+$pat = $env:AZURE_DEVOPS_PAT
+$poolId = 5
+
+$base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes((":$pat")))
+$headers = @{Authorization = "Basic $base64AuthInfo"}
+
+# Get all agents in the pool
+$uri = "$orgUrl/_apis/distributedtask/pools/$poolId/agents?api-version=6.0"
+$agents = (Invoke-RestMethod -Uri $uri -Headers $headers).value
+
+foreach ($agent in $agents) {
+    if ($agent.status -ne "online") {
+        Write-Warning "Agent $($agent.name) is $($agent.status)"
+        # Send alert to monitoring system
+        Send-Alert -Message "Agent offline: $($agent.name)"
+        
+        # Auto-restart agent service if offline
+        if ($agent.status -eq "offline") {
+            Invoke-Command -ComputerName $agent.name -ScriptBlock {
+                Restart-Service "vstsagent.*"
+            }
+        }
+    }
+    
+    # Check disk space on agent
+    $disk = Get-WmiObject Win32_LogicalDisk -ComputerName $agent.name -Filter "DeviceID='C:'"
+    $freeSpaceGB = [math]::Round($disk.FreeSpace / 1GB, 2)
+    
+    if ($freeSpaceGB -lt 10) {
+        Write-Warning "Low disk space on $($agent.name): $freeSpaceGB GB free"
+        Send-Alert -Message "Low disk space: $($agent.name) - $freeSpaceGB GB"
+    }
+}
+
+# Monitor queue length
+$queueUri = "$orgUrl/_apis/distributedtask/pools/$poolId/jobrequests?api-version=6.0"
+$queuedJobs = (Invoke-RestMethod -Uri $queueUri -Headers $headers).value | Where-Object {$_.assignTime -eq $null}
+
+if ($queuedJobs.Count -gt 10) {
+    Write-Warning "High queue depth: $($queuedJobs.Count) jobs waiting"
+    Send-Alert -Message "Queue backlog: $($queuedJobs.Count) jobs in pool $poolId"
+}
+```
+
+- **Action:** Set thresholds for queue time and failure spikes, triggering notifications and auto-scaling scripts when exceeded.- **Result:** Capacity issues were caught early, and build performance stayed consistent as demand fluctuated.
 
 #### Q12.b. Follow-up – Patching and upgrades
 
@@ -631,6 +678,218 @@ spec:
 - **Action:** Used golden images or configuration‑management scripts to rebuild agents with updated OS, tools, and security patches instead of manual in‑place updates.  
 - **Action:** Rolled out changes gradually across pools and monitored build success before completing the rollout.  
 - **Result:** Agents stayed secure and consistent without large downtime or surprise tool regressions.
+
+#### Q12.c. Follow-up – Agent capability tags and routing
+
+**Question:**
+"How did you set up agent capability tags to route specific builds to the right agents?"
+
+**Answer (STAR – brief):**
+- **Action:** Configured agent capabilities (user-defined and system) to tag agents with technologies they supported (Docker, Node, .NET versions), then used pipeline demands to route jobs to agents with matching capabilities.
+
+```yaml
+# azure-pipelines.yml - Using demands to route builds
+pool:
+  name: 'self-hosted-pool'
+  demands:
+    - docker
+    - node -equals 18
+    - Agent.OS -equals Linux
+
+steps:
+- script: docker build -t myapp:latest .
+  displayName: 'Build Docker image'
+```
+
+**Adding Capabilities to Agents:**
+
+*Manual via UI:*
+- Azure DevOps → Organization Settings → Agent pools → Select pool → Agents → Select agent → Capabilities tab
+- Add user-defined capabilities:
+  - `docker`: `true`
+  - `node`: `18`
+  - `.net`: `8.0`
+  - `security-zone`: `regulated`
+  - `gpu`: `nvidia-a100`
+
+*Automated via Agent Config:*
+```bash
+# During agent installation, add capabilities via .env file
+cat > /opt/agent/.capabilities <<EOF
+docker=true
+node=18
+kubectl=true
+terraform=1.6
+security-zone=regulated
+EOF
+```
+
+*PowerShell to Add Capabilities via API:*
+```powershell
+$orgUrl = "https://dev.azure.com/yourorg"
+$pat = $env:AZURE_DEVOPS_PAT
+$poolId = 5
+$agentId = 23
+
+$base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes((":$pat")))
+$headers = @{Authorization = "Basic $base64AuthInfo"; "Content-Type" = "application/json"}
+
+# Get agent
+$agentUri = "$orgUrl/_apis/distributedtask/pools/$poolId/agents/$agentId?includeCapabilities=true&api-version=6.0"
+$agent = Invoke-RestMethod -Uri $agentUri -Headers $headers -Method Get
+
+# Add new user capabilities
+$agent.userCapabilities['docker'] = 'true'
+$agent.userCapabilities['node'] = '18'
+$agent.userCapabilities['security-zone'] = 'regulated'
+
+# Update agent
+$body = $agent | ConvertTo-Json -Depth 10
+Invoke-RestMethod -Uri $agentUri -Headers $headers -Method Put -Body $body
+```
+
+- **Result:** Build jobs automatically routed to appropriate agents based on technology requirements, ensuring Docker builds ran on Docker-enabled agents and .NET builds on Windows agents with proper SDK versions.
+
+#### Q12.d. Follow-up – Automated agent provisioning
+
+**Question:**
+"How did you automate agent provisioning using Terraform and PowerShell?"
+
+**Answer (STAR – brief):**
+- **Action:** Created Terraform modules to provision Azure VMs and EC2 instances with pre-installed agent software, used cloud-init/user-data scripts to configure agents on boot, and implemented PowerShell scripts for on-demand scaling based on queue depth.
+
+**Terraform Example for Azure DevOps Agents:**
+
+```hcl
+# main.tf - Provision Azure VM with agent
+resource "azurerm_linux_virtual_machine" "devops_agent" {
+  count               = var.agent_count
+  name                = "devops-agent-${count.index + 1}"
+  resource_group_name = azurerm_resource_group.agents.name
+  location            = var.location
+  size                = "Standard_D2s_v3"
+  admin_username      = "azureuser"
+  
+  admin_ssh_key {
+    username   = "azureuser"
+    public_key = file("~/.ssh/id_rsa.pub")
+  }
+  
+  network_interface_ids = [
+    azurerm_network_interface.agent_nic[count.index].id
+  ]
+  
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Premium_LRS"
+  }
+  
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts-gen2"
+    version   = "latest"
+  }
+  
+  custom_data = base64encode(templatefile("${path.module}/agent-install.sh", {
+    org_url    = var.azure_devops_org_url
+    pat_token  = var.pat_token
+    pool_name  = var.pool_name
+    agent_name = "agent-${count.index + 1}"
+  }))
+  
+  tags = {
+    Environment = var.environment
+    Purpose     = "DevOps-Agent"
+  }
+}
+```
+
+**Agent Installation Script (cloud-init):**
+
+```bash
+#!/bin/bash
+# agent-install.sh
+
+set -e
+
+# Install dependencies
+apt-get update
+apt-get install -y curl jq docker.io
+
+# Add user to docker group
+usermod -aG docker azureuser
+
+# Download and configure agent
+cd /opt
+mkdir agent && cd agent
+curl -fsSL https://vstsagentpackage.azureedge.net/agent/3.234.0/vsts-agent-linux-x64-3.234.0.tar.gz | tar -xz
+
+# Configure agent
+./config.sh --unattended \
+  --url "${org_url}" \
+  --auth pat \
+  --token "${pat_token}" \
+  --pool "${pool_name}" \
+  --agent "${agent_name}" \
+  --replace \
+  --acceptTeeEula
+
+# Install as systemd service
+./svc.sh install azureuser
+./svc.sh start
+
+# Add capabilities
+cat > /opt/agent/.capabilities <<EOF
+docker=true
+kubectl=true
+terraform=1.6
+EOF
+```
+
+**PowerShell Auto-Scaling Script:**
+
+```powershell
+# auto-scale-agents.ps1
+$orgUrl = "https://dev.azure.com/yourorg"
+$pat = $env:AZURE_DEVOPS_PAT
+$poolId = 5
+$minAgents = 2
+$maxAgents = 10
+$queueThreshold = 5
+
+$base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes((":$pat")))
+$headers = @{Authorization = "Basic $base64AuthInfo"}
+
+# Get queue depth
+$queueUri = "$orgUrl/_apis/distributedtask/pools/$poolId/jobrequests?api-version=6.0"
+$queuedJobs = (Invoke-RestMethod -Uri $queueUri -Headers $headers).value | 
+              Where-Object {$_.assignTime -eq $null}
+
+# Get current agent count
+$agentsUri = "$orgUrl/_apis/distributedtask/pools/$poolId/agents?api-version=6.0"
+$currentAgents = (Invoke-RestMethod -Uri $agentsUri -Headers $headers).value | 
+                 Where-Object {$_.status -eq "online"}
+
+Write-Host "Queue depth: $($queuedJobs.Count), Current agents: $($currentAgents.Count)"
+
+if ($queuedJobs.Count -gt $queueThreshold -and $currentAgents.Count -lt $maxAgents) {
+    # Scale up
+    $newAgentCount = [Math]::Min($currentAgents.Count + 2, $maxAgents)
+    Write-Host "Scaling up to $newAgentCount agents"
+    
+    terraform apply -auto-approve -var="agent_count=$newAgentCount"
+    
+} elseif ($queuedJobs.Count -eq 0 -and $currentAgents.Count -gt $minAgents) {
+    # Scale down after idle period
+    $newAgentCount = [Math]::Max($currentAgents.Count - 1, $minAgents)
+    Write-Host "Scaling down to $newAgentCount agents"
+    
+    terraform apply -auto-approve -var="agent_count=$newAgentCount"
+}
+```
+
+- **Result:** Reduced manual provisioning from hours to minutes, automatically scaled agent capacity during peak build times, and maintained consistent agent configuration across all environments.
 
 ### Q13: "How have you managed GitHub runners and GitHub administration?"
 
