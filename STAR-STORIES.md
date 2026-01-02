@@ -1578,9 +1578,157 @@ spec:
 "How did you handle exceptions when a team needed something custom?"
 
 **Answer (STAR – brief):**  
-- **Action:** Allowed extension via values and chart hooks, and for rare cases, created a "derived" chart that still inherited core platform patterns.  
-- **Action:** Reviewed exception requests with security/platform teams to ensure risk was understood and properly documented.  
+- **Action:** Allowed extension via values and chart hooks, and for rare cases, created a ["derived" chart](#creating-derived-charts) that still inherited core platform patterns.-
+ **Action:** Reviewed exception requests with security/platform teams to ensure risk was understood and properly documented.  
 - **Result:** Teams got needed flexibility without losing the baseline operational and security standards.
+
+#### Creating Derived Charts
+
+When a team needed custom requirements that couldn't be handled through values alone, we created a "derived" chart that inherited from the platform template:
+
+**Example: ML Workload Derived Chart**
+
+```yaml
+# ml-app-chart/Chart.yaml - Derived chart for ML workloads
+apiVersion: v2
+name: ml-app-template
+description: Specialized chart for ML apps, derived from platform-app-template
+type: application
+version: 1.0.0
+appVersion: "1.0"
+
+dependencies:
+  - name: platform-app-template
+    version: "1.0.0"
+    repository: "https://charts.company.com/platform"
+```
+
+```yaml
+# ml-app-chart/values.yaml - Override and extend platform defaults
+# Import all platform defaults
+platform-app-template:
+  replicaCount: 3
+  image:
+    repository: ""
+    tag: ""
+  
+  # Standard platform configs inherited
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+  
+  # Override resources for GPU workloads
+  resources:
+    limits:
+      nvidia.com/gpu: 1
+      cpu: 4000m
+      memory: 8Gi
+    requests:
+      nvidia.com/gpu: 1
+      cpu: 2000m
+      memory: 4Gi
+  
+  # Add custom node selection for GPU nodes
+  nodeSelector:
+    node.kubernetes.io/instance-type: gpu-node
+    accelerator: nvidia-tesla-v100
+  
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Exists
+      effect: NoSchedule
+
+# Custom ML-specific configurations
+mlConfig:
+  modelStorage:
+    enabled: true
+    size: 100Gi
+    storageClass: fast-ssd
+  
+  jupyterNotebook:
+    enabled: false
+  
+  tensorboard:
+    enabled: true
+    port: 6006
+```
+
+```yaml
+# ml-app-chart/templates/ml-pvc.yaml - Custom template for model storage
+{{- if .Values.mlConfig.modelStorage.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "ml-app.fullname" . }}-models
+  labels:
+    {{- include "ml-app.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.mlConfig.modelStorage.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.mlConfig.modelStorage.size }}
+{{- end }}
+```
+
+```yaml
+# ml-app-chart/templates/tensorboard.yaml - Custom ML tooling
+{{- if .Values.mlConfig.tensorboard.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ml-app.fullname" . }}-tensorboard
+  labels:
+    {{- include "ml-app.labels" . | nindent 4 }}
+    component: tensorboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "ml-app.selectorLabels" . | nindent 6 }}
+      component: tensorboard
+  template:
+    metadata:
+      labels:
+        {{- include "ml-app.selectorLabels" . | nindent 8 }}
+        component: tensorboard
+    spec:
+      # Inherit platform security context
+      securityContext:
+        {{- toYaml .Values."platform-app-template".podSecurityContext | nindent 8 }}
+      
+      containers:
+      - name: tensorboard
+        image: tensorflow/tensorflow:latest
+        command: ["tensorboard"]
+        args:
+          - "--logdir=/logs"
+          - "--port={{ .Values.mlConfig.tensorboard.port }}"
+          - "--bind_all"
+        ports:
+        - containerPort: {{ .Values.mlConfig.tensorboard.port }}
+          protocol: TCP
+        volumeMounts:
+        - name: logs
+          mountPath: /logs
+        securityContext:
+          {{- toYaml .Values."platform-app-template".securityContext | nindent 10 }}
+      
+      volumes:
+      - name: logs
+        persistentVolumeClaim:
+          claimName: {{ include "ml-app.fullname" . }}-models
+{{- end }}
+```
+
+**Key Benefits of Derived Charts:**
+
+- **Inheritance**: Automatically gets platform updates (security, monitoring, networking)
+- **Customization**: Adds ML-specific features (GPU support, model storage, TensorBoard)
+- **Compliance**: Still enforces baseline security and operational standards
+- **Maintainability**: Platform team maintains base chart, ML team owns extensions
+- **Reusability**: Other ML teams can use this derived template
 
 ---
 
