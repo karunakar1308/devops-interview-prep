@@ -2360,7 +2360,7 @@ if ($queuedJobs.Count -gt $queueThreshold -and $currentAgents.Count -lt $maxAgen
 
 ### Q16: "How have you implemented GitOps with ArgoCD for Kubernetes deployments?"
 
-**S:** At Equifax and Apple, manual kubectl deployments and configuration drift were causing reliability issues in our Kubernetes environments.
+**S:** At Equifax, manual kubectl deployments and configuration drift were causing reliability issues in our Kubernetes environments.
 
 **T:** I needed to implement a GitOps approach using ArgoCD to make deployments declarative, auditable, and automated.
 
