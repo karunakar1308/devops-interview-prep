@@ -1294,7 +1294,7 @@ $(cat my-app-values.yaml | sed 's/^/                  /')
 **Answer (STAR – brief):**  
 - **Action:** Marked the platform charts as the recommended baseline, referenced them in all onboarding docs, and pre‑wired them into CI/CD scaffolding.  
 - **Action:** Combined this with admission controls (for example, Gatekeeper policies) that required certain labels, probes, and limits, which the standard charts already included.  
-- **Result:** Teams quickly realized it was easier to use the approved charts than to fight policy failures with 
+- **Result:** Teams quickly realized it was easier to use the approved charts than to fight policy failures with custom manifests. 
 
 **CI/CD Scaffolding Implementation:**
 
