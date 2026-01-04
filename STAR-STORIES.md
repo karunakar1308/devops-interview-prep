@@ -334,7 +334,7 @@ spec:
 **Answer (STAR – brief):**  
 - **Action:** Updated runbooks to include a clear checklist: check HPA metrics, pod restarts, CPU throttling, and key dashboards before deeper dives.  
 - **Action:** Added concrete SLO/SLA thresholds and pre‑defined mitigation steps like temporary replica scaling or rolling back recent config changes.  
-- **Result:** Future incidents were handled faster and more consistently by on‑call engineers, even if they wereless familiar with that specific service. 
+- **Result:** Future incidents were handled faster and more consistently by on‑call engineers, even if they were less familiar with that specific service. 
 
 **Detailed Technical Breakdown:**
 
