@@ -49,10 +49,25 @@ jobs:
       # Security scanning
       - name: Run security scans
         run: | 
-          # SonarQube analysis
-          # Dependency vulnerability check
-          # Secret scanning
-      
+            sonar-scanner \
+              -Dsonar.projectKey=${{ github.repository }} \
+              -Dsonar.sources=. \
+              -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+              -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+              -Dsonar.qualitygate.wait=true
+            
+            # Dependency vulnerability check
+            # Maven/Java projects
+            mvn org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7
+            
+            # Node.js/NPM projects  
+            npm audit --audit-level=high
+            
+            # Snyk scanning
+            snyk test --severity-threshold=high
+            
+            # Secret scanning
+            docker run --rm -v $(pwd):/path zricethezav/gitleaks:latest detect --source="/path" --verbose --no-git      
       # Infrastructure provisioning
       - name: Deploy infrastructure (Terraform)
         if: needs.terraform
