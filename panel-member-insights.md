@@ -1,6 +1,6 @@
-# Interview Panel Member - DevOps Lead Experience at Humana
+# Interview Panel Member - DevOps Lead Experience 
 
-> **Purpose**: Understanding what your DevOps Lead interviewer has accomplished at Humana will help you have more informed conversations and ask better questions about the team's work and future direction.
+> **Purpose**: Understanding what your DevOps Lead interviewer has accomplished at  will help you have more informed conversations and ask better questions about the team's work and future direction.
 
 ---
 
@@ -148,7 +148,7 @@
 - "How do teams contribute back to the knowledge base?"
 - "What's your approach to operationalizing successful experiments?"
 
-**This directly relates to Humana's need to**:
+**This directly relates to 's need to**:
 - Document platform patterns
 - Enable team self-service
 - Reduce dependency on tribal knowledge
@@ -158,7 +158,7 @@
 
 ## Application Architect & Oracle Developer (2000-2014)
 
-> **Note**: This shows the DevOps Lead has 14+ years at Humana and deep institutional knowledge of legacy enterprise systems.
+> **Note**: This shows the DevOps Lead has 14+ years at  and deep institutional knowledge of legacy enterprise systems.
 
 ### Core Platform Contributions
 
@@ -208,7 +208,7 @@
 
 ### Why This Matters
 
-**Deep Humana Context**:
+**Deep  Context**:
 - Understands legacy enterprise architecture
 - Knows compliance requirements (SOX, HIPAA)
 - Experienced with high-stakes production systems (payroll/HR)
@@ -254,7 +254,7 @@
 
 ### About Team & Culture:
 
-10. **"You've been at Humana for 25+ years across multiple technology shifts. What makes Humana's engineering culture unique?"**
+10. **"You've been at  for 25+ years across multiple technology shifts. What makes 's engineering culture unique?"**
 
 11. **"As someone who's transitioned from application development to platform engineering, what advice would you give for success in this role?"**
 
@@ -262,7 +262,7 @@
 
 ### About DevOps Platform Administration:
 
-13. **"What's your vision for the ideal developer experience on the Humana DevOps platform?"**
+13. **"What's your vision for the ideal developer experience on the  DevOps platform?"**
 
 14. **"How do you measure success for platform engineering initiatives?"**
 
@@ -347,7 +347,7 @@
 
 ---
 
-**Remember**: This DevOps Lead has 25+ years at Humana, built critical enterprise platforms, and is leading major security and platform transformations. Show genuine interest in their work, ask thoughtful questions, and demonstrate how your skills align with their vision for the platform's future.
+**Remember**: This DevOps Lead has 25+ years at , built critical enterprise platforms, and is leading major security and platform transformations. Show genuine interest in their work, ask thoughtful questions, and demonstrate how your skills align with their vision for the platform's future.
 
 
 ---
@@ -361,7 +361,7 @@
 #### **Early Interview (Rapport Building)**
 
 **Best Questions:**
-- "You've been at Humana for 25+ years across multiple technology shifts. What makes Humana's engineering culture unique?"
+- "You've been at  for 25+ years across multiple technology shifts. What makes 's engineering culture unique?"
 - "As someone who's transitioned from application development to platform engineering, what advice would you give for success in this role?"
 
 **Why These Work:**
@@ -400,7 +400,7 @@
 #### **Closing (Vision & Future)**
 
 **Best Questions:**
-- "What's your vision for the ideal developer experience on the Humana DevOps platform?"
+- "What's your vision for the ideal developer experience on the  DevOps platform?"
 - "How do you measure success for platform engineering initiatives?"
 
 **Why These Work:**
@@ -536,7 +536,7 @@ Instead of: "What was hard about the migration?"
 
 ### ❌ **Questions About Basics You Should Know**
 
-- "What does the DevOps team do at Humana?"
+- "What does the DevOps team do at ?"
 - "What tools do you use for CI/CD?"
 - "Do you use Azure or AWS?"
 
@@ -607,7 +607,7 @@ Instead of: "What was hard about the migration?"
 
 ### **Opening (5 minutes):**
 
-**You:** "Thanks for taking the time. Before we dive into technical questions, I wanted to say I was really impressed reading about your 25+ years at Humana and the major transformations you've led—from building the HRMS platforms to now leading the shift to centralized DevOps. What's kept you at Humana through all these technology generations?"
+**You:** "Thanks for taking the time. Before we dive into technical questions, I wanted to say I was really impressed reading about your 25+ years at  and the major transformations you've led—from building the HRMS platforms to now leading the shift to centralized DevOps. What's kept you at  through all these technology generations?"
 
 **Impact:** Personal, respectful, shows research, opens rapport
 
@@ -649,7 +649,7 @@ Instead of: "What was hard about the migration?"
 
 ### **Closing (5 minutes):**
 
-**You:** "Last question—what's your vision for the ideal developer experience on the Humana DevOps platform? If you could wave a magic wand, what would change?"
+**You:** "Last question—what's your vision for the ideal developer experience on the  DevOps platform? If you could wave a magic wand, what would change?"
 
 **[They share vision]**
 
@@ -706,7 +706,7 @@ Instead of: "What was hard about the migration?"
 ### **Remember:**
 
 The DevOps Lead has:
-- **25+ years at Humana**
+- **25+ years at **
 - **Built 10+ critical enterprise platforms** (HRMS, Payroll)
 - **Led major security transformation** (98% access reduction)
 - **Architected large-scale migrations** (TFS→Azure DevOps, GitHub EMU)
