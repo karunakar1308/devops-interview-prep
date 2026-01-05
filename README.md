@@ -7,7 +7,7 @@
 > - **JFrog Artifactory**: Artifact management
 > - **GitOps with ArgoCD**: Kubernetes deployments
 
-STAR method interview preparation for the Humana DevOps Engineer role. This repository contains comprehensive behavioral and technical interview stories aligned to the specific requirements outlined by Katie Brake.
+STAR method interview preparation for theDevOps Engineer role. This repository contains comprehensive behavioral and technical interview stories aligned to the specific requirements outlined by Katie Brake.
 
 ## Interview Details
 
@@ -19,7 +19,7 @@ STAR method interview preparation for the Humana DevOps Engineer role. This repo
 ## Role Overview
 
 ### Position Summary
-**DevOps Platform Administrator** supporting Humana's internal DevOps platform capabilities within a regulated healthcare environment. Primary focus on administering Azure DevOps agents (Linux/Windows), GitHub runners, JFrog Artifactory, SonarQube, and implementing GitOps with ArgoCD for Kubernetes deployments across Azure and GCP.
+**DevOps Platform Administrator** supporting internal DevOps platform capabilities within a regulated healthcare environment. Primary focus on administering Azure DevOps agents (Linux/Windows), GitHub runners, JFrog Artifactory, SonarQube, and implementing GitOps with ArgoCD for Kubernetes deployments across Azure and GCP.
 ### Key Responsibilities
 - Design, implement, and maintain CI/CD pipelines (Azure DevOps, ArgoCD, GitOps)
 - Support cloud platform infrastructure across Azure and GCP in hybrid/regulated environments
