@@ -8,7 +8,11 @@ Comprehensive behavioral interview answers using the STAR (Situation, Task, Acti
 
 **Answer:**
 
-"I'm a **platform**-focused DevOps/SRE engineer with 9+ years of experience enabling application teams through Azure, AWS, Kubernetes, CI/CD and GitOps workflows. At recent clients like Apple and Fiserv, I've led CI/CD optimization and developer workflow standardization using GitHub Actions, Azure DevOps, and Harness, with reusable templates and golden paths that cut new-service onboarding from 1–2 days down to a few hours. I've designed and automated EKS clusters and core AWS infrastructure using Terraform modules and GitOps patterns, improving infrastructure provisioning time by 40–60% and reducing configuration drift. I also focus heavily on observability and operational excellence—building Prometheus, CloudWatch, and Grafana dashboards, custom health checks, and runbooks—which reduced incident resolution time and lowered manual maintenance effort.
+"I'm a **platform**‑focused DevOps/SRE engineer with around 9 years of experience building CI/CD platforms, Kubernetes environments, and GitOps workflows on Azure, AWS, and GCP.  In my recent roles in the financial sector, I've owned Azure DevOps and GitHub as shared platforms: designing and administering Linux and Windows self‑hosted agents, organizing agent pools by security and compliance boundaries, and standardizing how product teams consume those pools so they get reliable, scalable build and deployment pipelines without managing infrastructure themselves.
+
+I also have strong experience with GitOps using ArgoCD, moving teams from manual kubectl‑driven deployments to fully declarative, Git‑driven workflows.  I've set up ArgoCD applications per environment, integrated them with hardened Helm charts, and used policies like auto‑sync/self‑heal in lower environments and approval‑based sync for production, which reduced drift and made rollbacks as simple as reverting a commit.
+
+Even though my background is in financial services, the constraints are very similar to healthcare: strict compliance, auditability, segregation of duties, and the need for secure, repeatable delivery at scale.  The platform patterns I've implemented—such as standardized agent pools, controlled GitHub governance, GitOps with ArgoCD, and integrated quality gates with tools like SonarQube and Artifactory—are directly transferable to a healthcare environment and can help accelerate safe delivery while maintaining regulatory standards."
 
 ## CI/CD & GitOps Stories
 
