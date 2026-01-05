@@ -1816,6 +1816,54 @@ spec:
 
 ---
 
+### Detailed Explanation: GitHub → Azure DevOps Migration
+
+#### Why the Migration Was Done
+
+**Leverage Existing Enterprise Investment in Azure DevOps**: Many regulated organizations already have release approvals, change-management integration, and on-prem agents set up in Azure DevOps. Moving deployment stages there avoids rebuilding those controls in GitHub from scratch.
+
+**Hybrid Deployment Model**: GitHub Actions was used for build, test, and security scans, while Azure DevOps handled deployments to environments that required self-hosted agents, network-isolated targets, or tight ITSM integration.
+
+**Standardization and Governance**: Centralizing deployments in Azure DevOps made it easier to enforce common release gates, RBAC, and audit trails, while still allowing teams to keep using GitHub as their main development platform.
+
+#### How the Migration Was Approached
+
+**Repository and Pipeline Inventory**: Existing GitHub pipelines and any ad-hoc scripts (Jenkins, shell, etc.) were reviewed to identify which steps were build/test vs deploy, and which environments or targets required Azure DevOps agents.
+
+**Split Responsibilities Clearly**:
+- GitHub Actions templates standardized build, unit tests, SAST/DAST, artifact publishing, and Terraform where applicable.
+- Azure DevOps pipelines were created or updated to own deployments, environment variables, approvals, and change-ticket checks.
+
+**Introduce a Hybrid Trigger Pattern**: GitHub pipelines were updated so that after a successful build and scan, they programmatically triggered the corresponding Azure DevOps release pipeline (for example via REST API) with the artifact version or image tag as input.
+
+#### Technical Implementation Patterns
+
+**Standard GitHub Actions Templates**: Reusable workflows were created for microservices that handled language-specific builds (Java/Node), SonarQube and dependency scanning, secret scanning, and artifact publishing to a shared registry or repository.
+
+**Triggering Azure DevOps from GitHub**:
+- A dedicated job or step in GitHub Actions called the Azure DevOps REST API (or used a CLI wrapper) to queue a pipeline run and pass parameters like build ID, artifact path, or container tag.
+- Service connections and PATs were stored as GitHub secrets, and the trigger step was made mandatory in the standard templates so all services followed the same pattern.
+
+**Aligning Environments and Variables**: Environment naming (dev, QA, UAT, prod), variable groups, and secrets were consolidated in Azure DevOps; GitHub only handled non-sensitive config, with secrets kept in Azure Key Vault or Azure DevOps variable groups.
+
+#### Governance and Security Considerations
+
+**RBAC and Approvals in Azure DevOps**: Only specific roles could approve production deployments or edit release pipelines, while dev teams could freely modify GitHub build workflows through PRs.
+
+**Mandatory Quality Gates Before Triggering ADO**: The GitHub template ensured that unit tests, code quality checks, and security scans passed before the Azure DevOps deployment pipeline could be triggered, effectively chaining quality in GitHub with governance in Azure DevOps.
+
+**Auditability and Compliance**: Using Azure DevOps for deployment kept a single, auditable release path with change-ticket integration and environment-level history, which is important in healthcare and financial environments.
+
+#### Migration and Adoption Strategy
+
+**Pilot Services First**: A couple of representative services were migrated from pure GitHub deployments (or Jenkins/manual) to the hybrid model to refine templates and address gaps in permissions or network access.
+
+**Template-First Approach**: Once patterns were stable, new services were onboarded directly onto the GitHub→Azure DevOps hybrid template, while existing services were migrated incrementally when they needed changes or new environments.
+
+**Documentation and Enablement**: Clear onboarding docs, copy-paste examples, and short walkthrough sessions made it easy for teams to adopt the new pattern without needing to understand every detail of the Azure DevOps API integration.
+
+---
+
 ## Artifact Management
 
 #### Q6.a. Follow-up – Risk mitigation during migrations
