@@ -1,4 +1,4 @@
-# Humana DevOps Engineer Interview Preparation
+# DevOps Engineer Interview Preparation
 
 > **🎯 Interview Focus Update**: Based on panel member feedback, this role is **purely around DevOps Platform Administration**. Key focus areas for the first round include:
 > - **Azure DevOps**: Linux server agents, Windows agents, agent pools administration
