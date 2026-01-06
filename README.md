@@ -7,8 +7,6 @@
 > - **JFrog Artifactory**: Artifact management
 > - **GitOps with ArgoCD**: Kubernetes deployments
 
-STAR method interview preparation for theDevOps Engineer role. This repository contains comprehensive behavioral and technical interview stories aligned to the specific requirements outlined by Katie Brake.
-
 ## Interview Details
 
 - **Duration**: 45 minutes (may run longer)
@@ -49,7 +47,7 @@ STAR method interview preparation for theDevOps Engineer role. This repository c
 
 ### Core Question Categories
 
-1. **"Tell Me About Yourself"** - [[STAR-STORIES.md](./STAR-STORIES.md#tell-me-about-yourself-humana-focused)](#tell-me-about-yourself)
+1. **"Tell Me About Yourself"**
 2. **CI/CD & GitOps** - Azure DevOps, GitHub, ArgoCD stories
 3. **Kubernetes & Platform Ownership** - AKS/GKE, production incidents
 4. **Cloud Platforms** - Azure/GCP hybrid environments
@@ -62,14 +60,13 @@ STAR method interview preparation for theDevOps Engineer role. This repository c
 
 ## Repository Structure
 
-```
 .
 ├── README.md                          # This file
 ├── STAR-STORIES.md         # Introduction script
 ├── star-stories/
-│   ├── ci-cd-gitops.md               # CI/CD and GitOps stories
+│   ├── ci-cd-gitops.md                # CI/CD and GitOps stories
 │   ├── kubernetes-platform.md         # Kubernetes and platform stories
-│   ├── cloud-azure-gcp.md            # Cloud platform stories
+│   ├── cloud-azure.md                 # Cloud platform stories
 │   ├── migrations.md                  # Migration stories
 │   ├── artifact-management.md         # Artifact management stories
 │   ├── powershell-automation.md       # PowerShell automation stories
@@ -77,16 +74,7 @@ STAR method interview preparation for theDevOps Engineer role. This repository c
 │   ├── compliance-security.md         # Compliance and security stories
 │   └── behavioral.md                  # Behavioral stories
 └── cheat-sheet.md                     # Quick reference bullet points
-```
 
-## Interview Day Tips
-
-### Before the Interview
-- [ ] Test video and audio setup
-- [ ] Find quiet room with solid internet connection
-- [ ] Have a copy of your resume visible
-- [ ] Keep cheat-sheet.md open as reference
-- [ ] Review Katie's email for last-minute reminders
 
 ### During the Interview
 - **Always explain** - Never answer with just "yes" or "no"
@@ -108,10 +96,3 @@ STAR method interview preparation for theDevOps Engineer role. This repository c
 - [Full STAR Stories](./STAR-STORIES.md)
 - - [Tell Me About Yourself Script](./STAR-STORIES.md)
 - [Interview Cheat Sheet](./cheat-sheet.md)
-- [Katie Brake's Email Requirements](./role-requirements.md)
-
----
-
-**Last Updated**: December 31, 2024  
-**Interview Date**: TBD  
-**Prepared by**: Karunakar
