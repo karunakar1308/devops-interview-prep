@@ -1,6 +1,5 @@
 # DevOps Engineer Interview Preparation
 
-> **🎯 Interview Focus Update**: Based on panel member feedback, this role is **purely around DevOps Platform Administration**. Key focus areas for the first round include:
 > - **Azure DevOps**: Linux server agents, Windows agents, agent pools administration
 > - **GitHub**: Runners and GitHub administration
 > - **SonarQube**: Code quality and integration
