@@ -1,5 +1,21 @@
 # DevOps Engineer Interview Preparation
 
+---
+
+## 🔒 **NEW: Cloud Security Architect Interview Prep (ODJFS)**
+
+**Interviewing for Cloud Security Architect role?** [Go to Cloud Security Architect prep →](/cloud-security-architect/)
+
+Comprehensive prep for ODJFS Cloud Security Architect position including:
+- ✅ 1-week focused study plan
+- ✅ 30-60-90 day implementation plan
+- ✅ Microsoft Defender for Cloud deep dive
+- ✅ STRIDE & MITRE ATT&CK frameworks
+- ✅ Architecture scenarios and interview Q&A
+
+---
+
+
 > - **Azure DevOps**: Linux server agents, Windows agents, agent pools administration
 > - **GitHub**: Runners and GitHub administration
 > - **SonarQube**: Code quality and integration
