@@ -1,6 +1,28 @@
 # Interview Cheat Sheet
 
 > **Quick reference for last-minute review before your Humana DevOps Engineer interview**
+>
+> ## Humana Round 2 – Quick Focus
+
+- **Azure DevOps agent pools**
+  - Separate pools per team/env; tag agents by capability.
+  - Auto-scaling with VM scale sets; drain and rotate unhealthy agents.
+  - Standardized images; monitor queue times and utilization; cost optimization.
+
+- **PowerShell, Ansible, Terraform**
+  - Terraform: provision infra and agent pool VMs.
+  - Ansible: install toolchains and register agents.
+  - PowerShell: agent registration, patching, diagnostics scripts wired into pipelines.
+
+- **CI/CD & platform reliability**
+  - Add metrics, logs, and pre-flight checks to pipelines.
+  - Manage flaky tests; improve rollback strategies.
+  - Correlate CI/CD logs with Kubernetes/infra metrics; create runbooks.
+
+- **Kubernetes projects (AKS & GKE)**
+  - AKS: node pools, identities, network policies, Helm/GitOps.
+  - GKE: multi-env clusters, HPA/PDBs, blue-green/canary.
+  - Always include 1–2 production incident stories with clear outcomes.
 
 ## Your Elevator Pitch (30 seconds)
 
