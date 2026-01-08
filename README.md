@@ -73,6 +73,20 @@ Comprehensive prep for ODJFS Cloud Security Architect position including:
 9. **Compliance & Security** - Regulated environments, HIPAA/SOC2
 10. **Behavioral** - Team collaboration, conflict, decision-making
 
+### Humana Round 2 Focus Areas
+For the Humana 2nd round, expect deeper questions in these areas:
+
+- **Azure DevOps agent pools** – operational aspects, reliability, and cost optimization strategies.
+- **Automation with PowerShell, Ansible, and Terraform** – agent maintenance and infrastructure as code.
+- **Troubleshooting CI/CD and platform reliability** – pipeline stability, observability, and incident handling.
+- **Containers & Kubernetes (AKS and GKE)** – real projects, production incidents, and lessons learned.
+
+Map your answers to existing story files:
+
+- Agent pools, CI/CD reliability → `star-stories/ci-cd-gitops.md`, `star-stories/observability-oncall.md`
+- PowerShell/Ansible/Terraform → `star-stories/powershell-automation.md`
+- AKS & GKE → `star-stories/kubernetes-platform.md`
+
 ## Repository Structure
 
 .
