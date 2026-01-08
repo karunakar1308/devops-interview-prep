@@ -86,6 +86,7 @@ Map your answers to existing story files:
 - Agent pools, CI/CD reliability → `star-stories/ci-cd-gitops.md`, `star-stories/observability-oncall.md`
 - PowerShell/Ansible/Terraform → `star-stories/powershell-automation.md`
 - AKS & GKE → `star-stories/kubernetes-platform.md`
+- - **Agent concepts & terminology** → `star-stories/agent-concepts.md`
 
 ## Repository Structure
 
@@ -93,6 +94,7 @@ Map your answers to existing story files:
 ├── README.md                          # This file
 ├── STAR-STORIES.md         # Introduction script
 ├── star-stories/
+    ├── agent-concepts.md          # Comprehensive build agent concepts, strategies
 │   ├── ci-cd-gitops.md                # CI/CD and GitOps stories
 │   ├── kubernetes-platform.md         # Kubernetes and platform stories
 │   ├── cloud-azure.md                 # Cloud platform stories
