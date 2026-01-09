@@ -8,7 +8,7 @@ Comprehensive behavioral interview answers using the STAR (Situation, Task, Acti
 
 **Answer:**
 
-"I'm a **platform**‑focused DevOps/SRE engineer with around 9 years of experience building CI/CD platforms, Kubernetes environments, and GitOps workflows on Azure, AWS.  In my recent roles, I was responbile for handling AWS Infrastructure , kubernetes, Azure DevOps and GitHub as shared platforms: designing and administering Linux and Windows self‑hosted agents, organizing agent pools by security and compliance boundaries, and standardizing how product teams consume those pools so they get reliable, scalable build and deployment pipelines without managing infrastructure themselves.
+"I'm a **platform**‑focused DevOps/SRE engineer with around 9 years of experience building CI/CD platforms, Kubernetes environments, and GitOps workflows on Azure, AWS.  In my recent roles, I was responbile for handling Azure Infrastructure , kubernetes, Azure DevOps and GitHub as shared platforms: designing and administering Linux and Windows self‑hosted agents, organizing agent pools by security and compliance boundaries, and standardizing how product teams consume those pools so they get reliable, scalable build and deployment pipelines without managing infrastructure themselves.
 
 I also have strong experience with GitOps using ArgoCD, moving teams from manual kubectl‑driven deployments to fully declarative, Git‑driven workflows.  I've set up ArgoCD applications per environment, integrated them with hardened Helm charts, and used policies like auto‑sync/self‑heal in lower environments and approval‑based sync for production, which reduced drift and made rollbacks as simple as reverting a commit.
 
